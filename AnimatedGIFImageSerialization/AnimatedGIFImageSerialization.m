@@ -52,7 +52,17 @@ __attribute__((overloadable)) UIImage * UIImageWithAnimatedGIFData(NSData *data,
             CGImageRef imageRef = CGImageSourceCreateImageAtIndex(imageSource, idx, (__bridge CFDictionaryRef)mutableOptions);
 
             NSDictionary *properties = (__bridge_transfer NSDictionary *)CGImageSourceCopyPropertiesAtIndex(imageSource, idx, NULL);
-            calculatedDuration += [[[properties objectForKey:(__bridge NSString *)kCGImagePropertyGIFDictionary] objectForKey:(__bridge  NSString *)kCGImagePropertyGIFDelayTime] doubleValue];
+            NSDictionary *gifproperties = [properties objectForKey:(__bridge NSString *)kCGImagePropertyGIFDictionary];
+            CGFloat duration = 0.0f;
+            if ([gifproperties objectForKey:(__bridge  NSString *) kCGImagePropertyGIFUnclampedDelayTime]) {
+                duration = [[gifproperties objectForKey:(__bridge  NSString *) kCGImagePropertyGIFUnclampedDelayTime] doubleValue];
+            } else if ([gifproperties objectForKey:(__bridge  NSString *) kCGImagePropertyGIFDelayTime]) {
+                duration = [[gifproperties objectForKey:(__bridge  NSString *) kCGImagePropertyGIFDelayTime] doubleValue];
+            }
+            if (duration < 0.011f) {
+                duration = 0.1f;
+            }
+            calculatedDuration += duration;
 
             [mutableImages addObject:[UIImage imageWithCGImage:imageRef scale:scale orientation:UIImageOrientationUp]];
 
